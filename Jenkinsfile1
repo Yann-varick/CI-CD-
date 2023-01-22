@@ -1,0 +1,97 @@
+pipeline{
+    tools{
+        jdk 'myjava'
+        maven 'mymaven'
+    }
+	//agent {label 'linux_slave'}
+	agent any
+      stages{
+           stage('Checkout'){
+	    
+               steps{
+		 echo 'cloning..'
+                 git 'https://github.com/devops-learner01012022/DevOpsClassCodes.git'
+              }
+          }
+          stage('Compile'){
+             
+              steps{
+                  echo 'compiling..'
+                  sh 'mvn compile'
+	      }
+          }
+          stage('CodeReview'){
+		  
+              steps{
+		    
+		  echo 'codeReview'
+                  sh 'mvn pmd:pmd'
+              }
+          }
+           stage('UnitTest'){
+		  
+              steps{
+	         
+                  sh 'mvn test'
+              }
+               post {
+               success {
+                   junit 'target/surefire-reports/*.xml'
+               }
+           }	
+          }
+           stage('MetricCheck'){
+              
+              steps{
+                  sh 'mvn cobertura:cobertura -Dcobertura.report.format=xml'
+              }
+               post {
+               success {
+	           cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: 'target/site/cobertura/coverage.xml', conditionalCoverageTargets: '70, 0, 0', failUnhealthy: false, failUnstable: false, lineCoverageTargets: '80, 0, 0', maxNumberOfBuilds: 0, methodCoverageTargets: '80, 0, 0', onlyStable: false, sourceEncoding: 'ASCII', zoomCoverageChart: false                  
+               }
+           }		
+          }
+          stage('Package'){
+		  
+              steps{
+		  
+                  sh 'mvn package'
+              }
+          }
+          stage('BuildDockerImage'){
+		  
+              steps{
+		  
+                  sh 'sudo docker build -t myproject:CICD .'
+              }
+          }	     
+           stage('DockerTag'){
+		  
+              steps{
+		  
+                  sh 'sudo docker tag myproject:CICD edu123/myproject:CICD'
+              }
+          }
+          stage('DockerLogin'){
+		  
+              steps{
+		  
+                  sh 'sudo docker login --username edu123 --password Edureka@123'
+              }
+          }
+          stage('DockerPush'){
+		  
+              steps{
+		  
+                  sh 'sudo docker push edu123/myproject:CICD'
+              }
+          }	  
+          stage('DockerContainerCreation'){
+		  
+              steps{
+		  
+                  sh 'sudo docker run -d -p 8081:8080 edu123/myproject:CICD'
+              }
+          }	  
+      }
+}
