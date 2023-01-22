@@ -28,5 +28,5 @@
     command: docker rmi myproject:CICD edu123/myproject:CICD
     ignore_errors: yes
     
-  - name: Do deployment to kuberetes Prod
+  - name: Do deployment to kuberetes Production
     command: kubectl apply -f https://raw.githubusercontent.com/devops-learner01012022/DevOps_ClassNotes/master/CICD%20pipeline/kubedeployment.yml
